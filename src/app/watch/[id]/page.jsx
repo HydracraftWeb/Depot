@@ -28,7 +28,7 @@ async function getMovie(id) {
 export default async function WatchMovie({ params }) {
   const { id } = await params;
   const movie = await getMovie(id);
-  const embedUrl = `https://vidsrc.icu/embed/movie/${id}`;
+  const embedUrl = `https://vsembed.ru/embed/movie/${id}`;
 
   return (
     <main className="min-h-screen bg-[#050507] px-5 py-6 text-white sm:px-8">
