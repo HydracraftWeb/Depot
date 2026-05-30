@@ -169,9 +169,6 @@ export default async function Home() {
             <a href="#top-10" className="hover:text-white">Top 10</a>
             <a href="#categories" className="hover:text-white">Categories</a>
           </div>
-          <button className="rounded-full bg-white px-5 py-2 text-sm font-black text-zinc-950 transition hover:bg-amber-300">
-            Join Depot
-          </button>
         </div>
       </nav>
 
