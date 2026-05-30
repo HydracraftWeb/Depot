@@ -7,60 +7,22 @@ const API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 
-const depotOriginals = [
-  {
-    id: "depot-aurora",
-    title: "Aurora Freight",
-    overview:
-      "A neon-soaked space crew hauls impossible cargo across the outer colonies while racing a rival syndicate.",
-    vote_average: 9.4,
-    release_date: "2026-03-12",
-    poster_path: null,
-    backdrop_path: null,
-    genre: "Sci-Fi Thriller",
-  },
-  {
-    id: "depot-vault",
-    title: "The Midnight Vault",
-    overview:
-      "A stylish heist team turns an abandoned train depot into the perfect headquarters for one last score.",
-    vote_average: 9.1,
-    release_date: "2025-11-07",
-    poster_path: null,
-    backdrop_path: null,
-    genre: "Action Heist",
-  },
-  {
-    id: "depot-signal",
-    title: "Signal Black",
-    overview:
-      "When every screen in the city goes dark, a rogue archivist discovers the stream that can save everyone.",
-    vote_average: 8.9,
-    release_date: "2026-01-19",
-    poster_path: null,
-    backdrop_path: null,
-    genre: "Mystery",
-  },
-  {
-    id: "depot-afterglow",
-    title: "Afterglow Avenue",
-    overview:
-      "A late-night diner becomes the crossroads for artists, dreamers, and legends chasing their next big break.",
-    vote_average: 8.7,
-    release_date: "2025-08-22",
-    poster_path: null,
-    backdrop_path: null,
-    genre: "Drama",
-  },
-];
+const emptySections = {
+  popular: [],
+  trending: [],
+  topRated: [],
+  action: [],
+  comedy: [],
+  family: [],
+};
 
-const fallbackSections = {
-  popular: depotOriginals,
-  trending: [...depotOriginals].reverse(),
-  topRated: [...depotOriginals].sort((a, b) => b.vote_average - a.vote_average),
-  action: depotOriginals.slice(0, 3),
-  comedy: depotOriginals.slice(1),
-  family: depotOriginals,
+const defaultHero = {
+  title: "Your next obsession boards here",
+  overview:
+    "Connect a TMDB API key to load live movies, trending rows, and personalized discovery lanes in the Depot experience.",
+  id: null,
+  poster_path: null,
+  backdrop_path: null,
 };
 
 async function getMovies(endpoint) {
@@ -94,8 +56,6 @@ function formatYear(date) {
 
 function MovieCard({ movie, rank }) {
   const image = getImage(movie.poster_path, "w500") || getImage(movie.backdrop_path, "w780");
-  const isDepotOriginal = String(movie.id).startsWith("depot-");
-
   const card = (
     <article className="group movie-card min-w-[168px] max-w-[168px] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] shadow-2xl shadow-black/30 transition duration-300 hover:-translate-y-2 hover:border-amber-300/60 hover:bg-white/[0.1] sm:min-w-[210px] sm:max-w-[210px]">
       <div className="relative aspect-[2/3] overflow-hidden bg-[radial-gradient(circle_at_top,#f7c94833,transparent_35%),linear-gradient(145deg,#231018,#09090f)]">
@@ -111,7 +71,7 @@ function MovieCard({ movie, rank }) {
               Depot
             </span>
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-amber-200/80">Original</p>
+              <p className="text-xs uppercase tracking-[0.28em] text-amber-200/80">Depot Pick</p>
               <h3 className="mt-2 text-2xl font-black leading-none text-white">{movie.title}</h3>
             </div>
           </div>
@@ -120,11 +80,6 @@ function MovieCard({ movie, rank }) {
         {rank ? (
           <div className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/70 px-3 py-1 text-sm font-black text-white backdrop-blur">
             #{rank}
-          </div>
-        ) : null}
-        {isDepotOriginal ? (
-          <div className="absolute right-3 top-3 rounded-full bg-amber-300 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-950">
-            Original
           </div>
         ) : null}
       </div>
@@ -139,10 +94,6 @@ function MovieCard({ movie, rank }) {
       </div>
     </article>
   );
-
-  if (isDepotOriginal) {
-    return <div>{card}</div>;
-  }
 
   return (
     <Link href={`/movie/${movie.id}`} aria-label={`Open ${movie.title}`}>
@@ -187,15 +138,15 @@ export default async function Home() {
   ]);
 
   const sections = {
-    popular: popular.length ? popular : fallbackSections.popular,
-    trending: trending.length ? trending : fallbackSections.trending,
-    topRated: topRated.length ? topRated : fallbackSections.topRated,
-    action: action.length ? action : fallbackSections.action,
-    comedy: comedy.length ? comedy : fallbackSections.comedy,
-    family: family.length ? family : fallbackSections.family,
+    popular: popular.length ? popular : emptySections.popular,
+    trending: trending.length ? trending : emptySections.trending,
+    topRated: topRated.length ? topRated : emptySections.topRated,
+    action: action.length ? action : emptySections.action,
+    comedy: comedy.length ? comedy : emptySections.comedy,
+    family: family.length ? family : emptySections.family,
   };
 
-  const hero = sections.trending[0];
+  const hero = sections.trending[0] ?? sections.popular[0] ?? defaultHero;
   const heroImage = getImage(hero.backdrop_path, "w1280") || getImage(hero.poster_path, "w780");
 
   return (
@@ -217,7 +168,6 @@ export default async function Home() {
             <a href="#trending" className="hover:text-white">Trending</a>
             <a href="#top-10" className="hover:text-white">Top 10</a>
             <a href="#categories" className="hover:text-white">Categories</a>
-            <a href="#originals" className="hover:text-white">Originals</a>
           </div>
           <button className="rounded-full bg-white px-5 py-2 text-sm font-black text-zinc-950 transition hover:bg-amber-300">
             Join Depot
@@ -240,17 +190,17 @@ export default async function Home() {
             <p className="max-w-2xl text-lg leading-8 text-zinc-300 sm:text-xl">{hero.overview}</p>
           </div>
           <div className="flex flex-wrap items-center gap-4">
-            {String(hero.id).startsWith("depot-") ? (
-              <button className="rounded-full bg-white px-8 py-4 text-base font-black text-zinc-950 shadow-2xl shadow-white/10 transition hover:scale-105 hover:bg-amber-300">
-                ▶ Play Featured
-              </button>
-            ) : (
+            {hero.id ? (
               <Link
                 href={`/movie/${hero.id}`}
                 className="rounded-full bg-white px-8 py-4 text-base font-black text-zinc-950 shadow-2xl shadow-white/10 transition hover:scale-105 hover:bg-amber-300"
               >
                 ▶ Play Featured
               </Link>
+            ) : (
+              <button className="rounded-full bg-white px-8 py-4 text-base font-black text-zinc-950 shadow-2xl shadow-white/10 transition hover:scale-105 hover:bg-amber-300">
+                Add TMDB Key
+              </button>
             )}
             <button className="rounded-full border border-white/20 bg-white/10 px-8 py-4 text-base font-black text-white backdrop-blur transition hover:border-amber-300 hover:text-amber-200">
               + My Depot List
@@ -310,9 +260,6 @@ export default async function Home() {
         </div>
         <div id="top-10">
           <MovieRow title="Top 10 in the Yard" eyebrow="Most boarded" movies={sections.popular.slice(0, 10)} ranked />
-        </div>
-        <div id="originals">
-          <MovieRow title="Depot Originals" eyebrow="Only here" movies={depotOriginals} />
         </div>
         <MovieRow title="High-voltage Action" eyebrow="Adrenaline lane" movies={sections.action} />
         <MovieRow title="Comedies that hit" eyebrow="Good mood queue" movies={sections.comedy} />
